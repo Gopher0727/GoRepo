@@ -11,7 +11,7 @@ import (
 )
 
 func main() {
-	// 读取 TOML 配置
+	// 读取 TOML 配置（根目录执行）
 	data, err := os.ReadFile("config.toml")
 	if err != nil {
 		log.Fatal(err)
