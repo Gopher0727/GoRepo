@@ -3,8 +3,11 @@
 config.toml
 docker-compose.yml
 
+data/
 mysql_data/
 redis_data/
 
+logs/
 *.log
+
 *.backup
