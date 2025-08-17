@@ -1,0 +1,10 @@
+.vscode/
+
+config.toml
+docker-compose.yml
+
+mysql_data/
+redis_data/
+
+*.log
+*.backup
