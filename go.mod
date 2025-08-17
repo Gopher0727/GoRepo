@@ -6,6 +6,7 @@ require (
 	github.com/go-sql-driver/mysql v1.9.3
 	github.com/pelletier/go-toml/v2 v2.2.4
 	github.com/redis/go-redis/v9 v9.12.1
+	gopkg.in/natefinch/lumberjack.v2 v2.2.1
 )
 
 require (
