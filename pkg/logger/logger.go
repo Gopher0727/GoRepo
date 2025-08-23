@@ -26,7 +26,7 @@ const (
 
 func init() {
 	// 创建日志文件
-	fileName := "logs/app.log"
+	fileName := "../logs/app.log"
 
 	// file, err := os.OpenFile(fileName, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
 	// if err != nil {

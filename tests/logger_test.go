@@ -2,11 +2,12 @@ package main
 
 import (
 	"log"
+	"testing"
 
 	"repo/pkg/logger"
 )
 
-func main() {
+func TestLogger(t *testing.T) {
 	log.Println("日志系统已初始化，日志将写入 app.log 文件")
 	// 示例日志
 	logger.Trace.Println("这是一个跟踪信息")

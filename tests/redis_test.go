@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"testing"
 	"time"
 
 	"github.com/pelletier/go-toml/v2"
@@ -13,9 +14,9 @@ import (
 	"repo/config"
 )
 
-func main() {
-	// 读取配置（根目录执行）
-	data, err := os.ReadFile("config.toml")
+func TestRedis(t *testing.T) {
+	// 读取配置
+	data, err := os.ReadFile("../config.toml")
 	if err != nil {
 		log.Fatal(err)
 	}

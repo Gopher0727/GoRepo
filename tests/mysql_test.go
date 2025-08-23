@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"testing"
 
 	_ "github.com/go-sql-driver/mysql" // 只执行包的 init()
 	"github.com/pelletier/go-toml/v2"
@@ -12,9 +13,9 @@ import (
 	"repo/config"
 )
 
-func main() {
-	// 读取配置（根目录执行）
-	data, err := os.ReadFile("config.toml")
+func TestMySQL(t *testing.T) {
+	// 读取配置
+	data, err := os.ReadFile("../config.toml")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -24,8 +25,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	dsn := fmt.Sprintf("root:%s@tcp(127.0.0.1:%d)/%s",
-		cfg.MySQL.RootPassword, cfg.MySQL.Port, cfg.MySQL.Database)
+	dsn := fmt.Sprintf("root:%s@tcp(127.0.0.1:%d)/%s", cfg.MySQL.RootPassword, cfg.MySQL.Port, cfg.MySQL.Database)
 
 	db, err := sql.Open("mysql", dsn)
 	if err != nil {
