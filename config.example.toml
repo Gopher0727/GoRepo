@@ -1,0 +1,15 @@
+version = "xxx"
+name = "xxx"
+
+[mysql]
+container_name = "mysql"
+root_password = "xxx"
+database = "xxx"
+port = 3306
+volume = "data/mysql_data:/var/lib/mysql"
+
+[redis]
+container_name = "redis"
+password = "xxx"
+port = 6379
+volume = "data/redis_data:/data"
