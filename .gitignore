@@ -17,3 +17,5 @@ todo/
 todo.md
 
 *.sql
+
+test.go
