@@ -1,21 +1,21 @@
 package config
 
 type Config struct {
-	MySQL MySQLConfig `toml:"mysql"`
-	Redis RedisConfig `toml:"redis"`
+	MySQL MySQLConfig `mapstructure:"mysql"`
+	Redis RedisConfig `mapstructure:"redis"`
 }
 
 type MySQLConfig struct {
-	ContainerName string `toml:"container_name"`
-	RootPassword  string `toml:"root_password"`
-	Database      string `toml:"database"`
-	Port          int    `toml:"port"`
-	Volume        string `toml:"volume"`
+	ContainerName string `mapstructure:"container_name"`
+	RootPassword  string `mapstructure:"root_password"`
+	Database      string `mapstructure:"database"`
+	Port          int    `mapstructure:"port"`
+	Volume        string `mapstructure:"volume"`
 }
 
 type RedisConfig struct {
-	ContainerName string `toml:"container_name"`
-	Password      string `toml:"password"`
-	Port          int    `toml:"port"`
-	Volume        string `toml:"volume"`
+	ContainerName string `mapstructure:"container_name"`
+	Password      string `mapstructure:"password"`
+	Port          int    `mapstructure:"port"`
+	Volume        string `mapstructure:"volume"`
 }

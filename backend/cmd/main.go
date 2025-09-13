@@ -5,22 +5,48 @@ import (
 	"log"
 	"os"
 
-	"github.com/pelletier/go-toml/v2"
+	"github.com/spf13/viper"
 
 	"github.com/Gopher0727/GoRepo/backend/config"
 )
 
 func main() {
 	// 读取 TOML 配置（根目录执行）
-	data, err := os.ReadFile("config.toml")
-	if err != nil {
-		log.Fatal(err)
+
+	// config 文件中用 mapstructure 指定
+	viper.SetConfigName("config")
+	viper.SetConfigType("toml")
+	viper.AddConfigPath(".")
+	if err := viper.ReadInConfig(); err != nil {
+		panic(fmt.Errorf("读取配置文件失败: %w", err))
 	}
 
 	var cfg config.Config
-	if err := toml.Unmarshal(data, &cfg); err != nil {
-		log.Fatal(err)
+	if err := viper.Unmarshal(&cfg); err != nil {
+		panic(fmt.Errorf("解析配置文件失败: %w", err))
 	}
+
+	// config 文件中用 toml 指定
+	// data, err := os.ReadFile("config.toml")
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
+	//
+	// var cfg config.Config
+	// if err := toml.Unmarshal(data, &cfg); err != nil {
+	// 	log.Fatal(err)
+	// }
+
+	fmt.Println(cfg.MySQL.ContainerName)
+	fmt.Println(cfg.MySQL.RootPassword)
+	fmt.Println(cfg.MySQL.Database)
+	fmt.Println(cfg.MySQL.Port)
+	fmt.Println(cfg.MySQL.Volume)
+
+	fmt.Println(cfg.Redis.ContainerName)
+	fmt.Println(cfg.Redis.Password)
+	fmt.Println(cfg.Redis.Port)
+	fmt.Println(cfg.Redis.Volume)
 
 	// 生成 docker-compose 文件，文件权限 0644（八进制数）
 	composeContent := generateDockerCompose(cfg)
