@@ -17,17 +17,6 @@ goimports-reviser -rm-unused -format -recursive .
 - Redis 的情况：
 > Redis 本身就是一个 key-value 存储，没有 SQL。Go 没有一个“统一接口”管理所有 NoSQL，Redis 驱动直接提供了高层 API，用 github.com/redis/go-redis/v9 就能直接操作 key-value，没有必要像 database/sql 那样抽象。
 
-4. GORM
-
-- 最流行的 Go ORM。  
-- 全面支持 CRUD、关系、事务、钩子、预加载等。  
-- 提供自动迁移（AutoMigrate）功能。  
-- 链式 API，非常直观。
-
-> GORM 是 关系型数据库 ORM，专门处理 MySQL、PostgreSQL、SQLite、SQL Server 等 SQL 数据库。它的功能都是围绕表、行、列、SQL 查询展开的，比如 CRUD、事务、关联、预加载等。
->
-> Redis 是 内存键值数据库，通常用于缓存、队列、计数器等。其数据结构多样（String、Hash、List、Set、SortedSet 等），并不是关系型表格结构；操作是 key-value 风格，不走 SQL，所以 ORM 的映射意义不大。
-
 
 ## Go 工具集合
 
@@ -37,5 +26,6 @@ Tool for Golang to sort goimports
 - https://github.com/kaptinlin/jsonrepair  
 Easily repair invalid JSON documents with the Golang JSONRepair Library.
 
-
+- https://github.com/tbphp/gpt-load  
+A high-performance, enterprise-grade AI API transparent proxy service designed specifically for enterprises and developers who need to integrate multiple AI services. Built with Go, featuring intelligent key management, load balancing, and comprehensive monitoring capabilities, designed for high-concurrency production environments.
 
