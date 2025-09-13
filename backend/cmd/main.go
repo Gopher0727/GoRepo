@@ -37,16 +37,16 @@ func main() {
 	// 	log.Fatal(err)
 	// }
 
-	fmt.Println(cfg.MySQL.ContainerName)
-	fmt.Println(cfg.MySQL.RootPassword)
-	fmt.Println(cfg.MySQL.Database)
-	fmt.Println(cfg.MySQL.Port)
-	fmt.Println(cfg.MySQL.Volume)
+	// fmt.Println(cfg.MySQL.ContainerName)
+	// fmt.Println(cfg.MySQL.RootPassword)
+	// fmt.Println(cfg.MySQL.Database)
+	// fmt.Println(cfg.MySQL.Port)
+	// fmt.Println(cfg.MySQL.Volume)
 
-	fmt.Println(cfg.Redis.ContainerName)
-	fmt.Println(cfg.Redis.Password)
-	fmt.Println(cfg.Redis.Port)
-	fmt.Println(cfg.Redis.Volume)
+	// fmt.Println(cfg.Redis.ContainerName)
+	// fmt.Println(cfg.Redis.Password)
+	// fmt.Println(cfg.Redis.Port)
+	// fmt.Println(cfg.Redis.Volume)
 
 	// 生成 docker-compose 文件，文件权限 0644（八进制数）
 	composeContent := generateDockerCompose(cfg)
