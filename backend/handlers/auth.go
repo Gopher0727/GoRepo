@@ -3,7 +3,6 @@ package handlers
 import (
 	"errors"
 	"net/http"
-	"sync"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -14,35 +13,31 @@ import (
 	"github.com/Gopher0727/GoRepo/backend/store"
 )
 
-// 简单内存用户存储（email -> encoded argon2 hash）
-var (
-	userStore   = map[string]string{}
-	userStoreMu sync.RWMutex
-)
-
 type authRegisterReq struct {
-	Email    string `json:"email"`
-	Password string `json:"password"`
+	Email    string `json:"email" binding:"required,email"`
+	Name     string `json:"name" binding:"required"`
+	Password string `json:"password" binding:"required,min=8"`
 }
 
 type authLoginReq struct {
-	Email    string `json:"email"`
-	Password string `json:"password"`
+	Email    string `json:"email" binding:"required,email"`
+	Password string `json:"password" binding:"required"`
 }
 
 // AuthRegister 处理用户注册
 func AuthRegister(c *gin.Context) {
 	var req authRegisterReq
-	if err := c.ShouldBindJSON(&req); err != nil || req.Email == "" || req.Password == "" {
+	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid payload"})
 		return
 	}
 
-	userStoreMu.Lock()
-	defer userStoreMu.Unlock()
-
-	if _, ok := userStore[req.Email]; ok {
+	var existed models.User
+	if err := store.DB.Where("email = ?", req.Email).First(&existed).Error; err == nil {
 		c.JSON(http.StatusConflict, gin.H{"error": "user exists"})
+		return
+	} else if !errors.Is(err, gorm.ErrRecordNotFound) {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "db query failed"})
 		return
 	}
 
@@ -51,23 +46,24 @@ func AuthRegister(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "hash failed"})
 		return
 	}
-	userStore[req.Email] = hash
 
 	// 写入数据库（若不存在）
-	var u models.User
-	if err := store.DB.Where("email = ?", req.Email).First(&u).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			u = models.User{Email: req.Email}
-			if err2 := store.DB.Create(&u).Error; err2 != nil {
-				c.JSON(http.StatusInternalServerError, gin.H{"error": "db create user failed"})
-				return
-			}
-		} else {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "db query failed"})
-			return
-		}
+	u := models.User{
+		Email:    req.Email,
+		Name:     req.Name,
+		Password: hash,
 	}
-	c.JSON(http.StatusCreated, gin.H{"email": req.Email, "id": u.ID})
+
+	if err := store.DB.Create(&u).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "db create user failed"})
+		return
+	}
+
+	c.JSON(http.StatusCreated, gin.H{
+		"id":    u.ID,
+		"email": u.Email,
+		"name":  u.Name,
+	})
 }
 
 // AuthLogin 处理用户登录
@@ -78,42 +74,34 @@ func AuthLogin(c *gin.Context) {
 		return
 	}
 
-	userStoreMu.RLock()
-	hash, ok := userStore[req.Email]
-	userStoreMu.RUnlock()
-	if !ok {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid credentials"})
+	var u models.User
+	if err := store.DB.Where("email = ?", req.Email).First(&u).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid credentials"})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "db query failed"})
 		return
 	}
 
-	ok, err := security.VerifyHash(req.Password, hash)
+	ok, err := security.VerifyHash(req.Password, u.Password)
 	if err != nil || !ok {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid credentials"})
 		return
 	}
 
-	// 查询用户（若不存在则补建，避免旧数据缺失）
-	var u models.User
-	if err := store.DB.Where("email = ?", req.Email).First(&u).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			u = models.User{Email: req.Email}
-			if err2 := store.DB.Create(&u).Error; err2 != nil {
-				c.JSON(http.StatusInternalServerError, gin.H{"error": "db create user failed"})
-				return
-			}
-		} else {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "db query failed"})
-			return
-		}
-	}
-
-	// 生成真实 JWT（sub 使用 email）
-	tok, err := middleware.GenerateToken(req.Email)
+	tok, err := middleware.GenerateToken(u.Email)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "token gen failed"})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"token": tok, "email": req.Email, "id": u.ID})
+
+	c.JSON(http.StatusOK, gin.H{
+		"token": tok,
+		"id":    u.ID,
+		"email": u.Email,
+		"name":  u.Name,
+	})
 }
 
 // AuthRehashCheck 检查是否需要重新 hash（根据当前参数）
@@ -124,12 +112,15 @@ func AuthRehashCheck(c *gin.Context) {
 		return
 	}
 
-	userStoreMu.RLock()
-	hash, ok := userStore[email]
-	userStoreMu.RUnlock()
-	if !ok {
-		c.JSON(http.StatusNotFound, gin.H{"error": "user not found"})
+	var u models.User
+	if err := store.DB.Where("email = ?", email).First(&u).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			c.JSON(http.StatusNotFound, gin.H{"error": "user not found"})
+			return
+		}
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "db query failed"})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"needsRehash": security.NeedsRehash(hash)})
+
+	c.JSON(http.StatusOK, gin.H{"needsRehash": security.NeedsRehash(u.Password)})
 }
