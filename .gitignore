@@ -10,9 +10,8 @@ logs/
 *.log
 
 *.backup
-*.sql
 
 config.toml
 docker-compose.yml
 
-test.go
+test.*
