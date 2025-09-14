@@ -3,33 +3,42 @@ package main
 import (
 	"database/sql"
 	"fmt"
-	"log"
-	"os"
 	"testing"
 
 	_ "github.com/go-sql-driver/mysql" // 只执行包的 init()
-	"github.com/pelletier/go-toml/v2"
+	"github.com/spf13/viper"
 
-	"github.com/Gopher0727/GoRepo/backend/config"
+	"github.com/Gopher0727/GoRepo/backend/models"
+	"github.com/Gopher0727/GoRepo/backend/pkg/logger"
 )
 
 func TestMySQL(t *testing.T) {
 	// 读取配置
-	data, err := os.ReadFile("../config.toml")
-	if err != nil {
-		log.Fatal(err)
+	viper.SetConfigName("config")
+	viper.SetConfigType("toml")
+	viper.AddConfigPath("../")
+
+	if err := viper.ReadInConfig(); err != nil {
+		logger.Error.Println(err)
+		t.Fail()
+		return
 	}
 
-	var cfg config.Config
-	if err := toml.Unmarshal(data, &cfg); err != nil {
-		log.Fatal(err)
+	var cfg models.Config
+	if err := viper.Unmarshal(&cfg); err != nil {
+		logger.Error.Println(err)
+		t.Fail()
+		return
 	}
 
+	// 连接 MySQL
 	dsn := fmt.Sprintf("root:%s@tcp(127.0.0.1:%d)/%s", cfg.MySQL.RootPassword, cfg.MySQL.Port, cfg.MySQL.Database)
 
 	db, err := sql.Open("mysql", dsn)
 	if err != nil {
-		log.Fatal(err)
+		logger.Error.Println(err)
+		t.Fail()
+		return
 	}
 	defer db.Close()
 
@@ -39,13 +48,17 @@ func TestMySQL(t *testing.T) {
 		name VARCHAR(50) NOT NULL
 	)`)
 	if err != nil {
-		log.Fatal(err)
+		logger.Error.Println(err)
+		t.Fail()
+		return
 	}
 
 	// 插入测试数据
 	_, err = db.Exec(`INSERT INTO users (name) VALUES (?)`, "TestUser")
 	if err != nil {
-		log.Fatal(err)
+		logger.Error.Println(err)
+		t.Fail()
+		return
 	}
 
 	// 查询验证
@@ -53,13 +66,15 @@ func TestMySQL(t *testing.T) {
 	err = db.QueryRow("SELECT name FROM users WHERE name = ?", "TestUser").Scan(&name)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			log.Println("测试失败：未找到用户记录")
-			return
+			logger.Error.Println("测试失败：未找到用户记录")
+		} else {
+			logger.Error.Println(err)
 		}
-		log.Fatal(err)
+		t.Fail()
+		return
 	}
 
-	fmt.Println("MySQL Test Passed, User:", name)
+	logger.Info.Println("MySQL Test Passed, User:", name)
 
 	// 清理测试数据
 	_, _ = db.Exec("DELETE FROM users WHERE name = ?", "TestUser")

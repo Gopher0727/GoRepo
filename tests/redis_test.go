@@ -11,7 +11,7 @@ import (
 	"github.com/pelletier/go-toml/v2"
 	"github.com/redis/go-redis/v9"
 
-	"github.com/Gopher0727/GoRepo/backend/config"
+	"github.com/Gopher0727/GoRepo/backend/models"
 )
 
 func TestRedis(t *testing.T) {
@@ -21,7 +21,7 @@ func TestRedis(t *testing.T) {
 		log.Fatal(err)
 	}
 
-	var cfg config.Config
+	var cfg models.Config
 	if err := toml.Unmarshal(data, &cfg); err != nil {
 		log.Fatal(err)
 	}
