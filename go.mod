@@ -3,6 +3,7 @@ module github.com/Gopher0727/GoRepo
 go 1.25.0
 
 require (
+	github.com/emirpasic/gods/v2 v2.0.0-alpha
 	github.com/gin-gonic/gin v1.10.0
 	github.com/go-sql-driver/mysql v1.9.3
 	github.com/golang-jwt/jwt/v5 v5.3.0
