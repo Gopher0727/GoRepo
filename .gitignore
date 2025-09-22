@@ -2,6 +2,7 @@
 
 bin/*
 data/*
+tmp/
 
 todo/
 todo.md
